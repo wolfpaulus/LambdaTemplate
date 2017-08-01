@@ -2,6 +2,8 @@ package com.wolfpaulus.aws;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.wolfpaulus.aws.lex.LexRequest;
+import com.wolfpaulus.aws.lex.LexResponse;
 import org.apache.log4j.Logger;
 
 /**
@@ -56,5 +58,23 @@ public class Prime implements RequestHandler<Request, Response> {
     public Response handleRequest(final Request input, final Context context) {
         log.info("Request received:" + input);
         return Prime.check(input.getNumber());
+    }
+    /**
+     * Handles a Lambda Function request coming from Lex
+     *
+     * @param input   {@link LexRequest} The Lambda Function input
+     * @param context {@link Context} The Lambda execution environment context object.
+     * @return {@link LexResponse} - The Lambda Function output
+     */
+    public LexResponse handleLexRequest(final LexRequest input, final Context context) {
+        log.info("LexRequest received:" + input.toString());
+        String s;
+        try {
+            final long p = Long.parseLong(input.currentIntent.slots.get("number"));
+            s = Prime.check(p).answer;
+        } catch (Exception e) {
+            s = e.getLocalizedMessage();
+        }
+        return new LexResponse(s, input.sessionAttributes);
     }
 }
